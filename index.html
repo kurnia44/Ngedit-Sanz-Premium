@@ -1298,8 +1298,29 @@
             max-width: 350px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
+            position: relative; /* <-- PERUBAHAN BARU: Untuk tombol ID Device */
         }
         
+        /* --- PERUBAHAN BARU: TOMBOL ID DEVICE --- */
+        .device-id-button {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background-color: #D9534F; /* Merah */
+            color: white; /* Teks Putih */
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px; /* Sedikit lebih kecil */
+            font-size: 12px; /* Sedikit lebih kecil */
+            font-weight: 500;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .device-id-button:active {
+            background-color: #b0423e; /* Merah lebih gelap */
+        }
+        /* --- AKHIR PERUBAHAN --- */
+
         .token-card h2 {
             margin-top: 0;
             margin-bottom: 16px;
@@ -1374,6 +1395,63 @@
             height: 20px;
             margin-top: 16px;
         }
+        
+        /* --- PERUBAHAN BARU: LIST HARGA TOKEN --- */
+        .price-list {
+            margin-top: 24px;
+            text-align: left;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding-top: 16px;
+            max-height: 180px; /* Batasi tinggi */
+            overflow-y: auto; /* Buat bisa di-scroll jika perlu */
+        }
+        .price-list h3 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #111;
+            margin: 0 0 16px 0;
+            text-align: center;
+        }
+        .vip-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+        }
+        .price-list h4 {
+            font-size: 15px;
+            color: #111;
+            margin: 16px 0 10px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+            font-weight: 600;
+        }
+        .price-list h4::after { /* Tambah bullet */
+            content: '•';
+            color: #007AFF;
+            margin-left: 8px;
+        }
+        .price-list ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .price-list li {
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .price-list li span:first-child {
+            color: #333;
+            font-weight: 500;
+        }
+        .price-list li span:last-child {
+            color: #007AFF;
+            font-weight: 600;
+        }
+        /* --- AKHIR PERUBAHAN --- */
         
         
         /* * ======================================
@@ -1588,6 +1666,9 @@
             Browser Anda tidak mendukung tag video.
         </video>
         <div class="token-card">
+            
+            <button type="button" id="show-device-id" class="device-id-button">Lihat ID Device</button>
+            
             <h2>Verifikasi Token</h2>
             <p>Silakan masukkan token untuk melanjutkan.</p>
             <form id="token-form">
@@ -1602,6 +1683,7 @@
                 <button type="button" class="token-button trial-button" id="trial-button">
                     🚀 Coba Trial
                 </button>
+                
                 <div class="token-loader" id="token-loader">
                     <style>
                         .token-loader .loading-dot { background-color: rgba(0,0,0,0.3); animation-name: bounce-dark; }
@@ -1620,7 +1702,30 @@
                     </div>
                 </div>
             </form>
-        </div>
+            
+            <div class="price-list">
+                <h3>
+                    <img src="vip.gif" alt="VIP" class="vip-icon">
+                    List Harga Token VIP
+                </h3>
+                
+                <h4>Durasi Harian</h4>
+                <ul>
+                    <li><span>Permanen</span> <span>Rp3.000.000</span></li>
+                    <li><span>30 Day</span> <span>Rp500.000</span></li>
+                    <li><span>15 Day</span> <span>Rp280.000</span></li>
+                    <li><span>1 Day</span> <span>Rp20.000</span></li>
+                </ul>
+                
+                <h4>Durasi Per Login</h4>
+                <ul>
+                    <li><span>1x Login</span> <span>Rp2000</span></li>
+                    <li><span>50x Login</span> <span>Rp90.000</span></li>
+                    <li><span>100x Login</span> <span>Rp170.000</span></li>
+                    <li><span>500x Login</span> <span>Rp550.000</span></li>
+                </ul>
+            </div>
+            </div>
     </div>
     
     <div class="setup-overlay" id="setup-overlay">
@@ -2258,7 +2363,8 @@
         const tokenButton = document.querySelector('#token-submit-button');
         const tokenError = document.querySelector('#token-error');
         const tokenLoader = document.querySelector('#token-loader');
-        const trialButton = document.querySelector('#trial-button'); // <-- BARU: Ambil tombol trial
+        const trialButton = document.querySelector('#trial-button');
+        const showDeviceIdButton = document.querySelector('#show-device-id'); // <-- BARU: Tombol ID Device
 
         // --- ELEMEN BARU GANTI AKUN ---
         const changeBalanceButton = document.querySelector('.change-button');
@@ -2638,6 +2744,26 @@
             }
             return "dev-" + Math.abs(hash);
         }
+
+        // --- FUNGSI BARU: TOMBOL ID DEVICE ---
+        function showAndCopyDeviceId() {
+            const deviceId = getDeviceID(); // Panggil fungsi yang sudah ada
+            
+            try {
+                // Coba salin ke clipboard
+                navigator.clipboard.writeText(deviceId).then(() => {
+                    // Berhasil
+                    alert("Device ID Anda:\n\n" + deviceId + "\n\n(ID telah disalin ke clipboard)");
+                }, () => {
+                    // Gagal (misal: di konteks tidak aman)
+                    prompt("Device ID Anda (gagal menyalin otomatis, silakan salin manual):", deviceId);
+                });
+            } catch (err) {
+                // Fallback untuk browser sangat lama
+                prompt("Device ID Anda (silakan salin manual):", deviceId);
+            }
+        }
+        // --- AKHIR FUNGSI BARU ---
         
         // --- FUNGSI BARU UNTUK TRIAL ---
         function handleTrialLogin() {
@@ -2772,11 +2898,15 @@
         
         tokenForm.addEventListener('submit', handleTokenSubmit);
         
-        // <-- TAMBAHKAN BLOK INI -->
+        // <-- LISTENER BARU: TOMBOL TRIAL -->
         if (trialButton) {
             trialButton.addEventListener('click', handleTrialLogin);
         }
-        // --- AKHIR TAMBAHAN ---
+        
+        // <-- LISTENER BARU: TOMBOL ID DEVICE -->
+        if (showDeviceIdButton) {
+            showDeviceIdButton.addEventListener('click', showAndCopyDeviceId);
+        }
         
         // Listener untuk tombol GAGAL (asli)
         setupForm.addEventListener('submit', saveUserData);
