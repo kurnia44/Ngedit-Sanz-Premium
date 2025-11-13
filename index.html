@@ -2841,15 +2841,25 @@
         
         function checkSavedToken() {
             const savedToken = localStorage.getItem('userToken');
+            const isTrial = localStorage.getItem('isTrialUser'); // <-- BARU: Cek flag trial
 
-            if (!savedToken) {
-                tokenOverlay.style.display = 'flex';
-                setupOverlay.style.display = 'none';
-            } else {
+            if (savedToken) {
+                // --- Logika Lama: Ada token berbayar ---
                 tokenOverlay.style.display = 'flex'; 
                 tokenInput.value = savedToken; 
                 tokenInput.disabled = true; 
-                performTokenValidation(savedToken, true); 
+                performTokenValidation(savedToken, true); // Validasi token berbayar
+            } else if (isTrial === 'true') {
+                // --- Logika BARU: Ada flag trial ---
+                tokenOverlay.style.display = 'flex';
+                tokenInput.value = ""; // Kosongkan input
+                tokenInput.disabled = true; // Nonaktifkan input
+                // Langsung panggil validasi trial
+                performTokenValidation("TRIAL_REQUEST", false); 
+            } else {
+                // --- Logika Lama: Tidak ada token DAN tidak ada trial ---
+                tokenOverlay.style.display = 'flex';
+                setupOverlay.style.display = 'none';
             }
         }
 
@@ -2858,7 +2868,7 @@
             
             tokenLoader.style.display = 'block';
             tokenButton.disabled = true;
-            if (trialButton) trialButton.disabled = true; // <-- TAMBAHKAN INI
+            if (trialButton) trialButton.disabled = true; 
             tokenInput.disabled = true;
             
             // --- MODIFIKASI PESAN LOADING ---
@@ -2878,7 +2888,7 @@
                 .then(data => {
                     tokenLoader.style.display = 'none';
                     tokenButton.disabled = false;
-                    if (trialButton) trialButton.disabled = false; // <-- TAMBAHKAN INI
+                    if (trialButton) trialButton.disabled = false; 
                     tokenInput.disabled = false;
                     
                     if (data.status === "success") {
@@ -2887,8 +2897,18 @@
                         // --- MODIFIKASI LOGIKA PENYIMPANAN ---
                         if (!isSavedTokenCheck && token !== "TRIAL_REQUEST") {
                             localStorage.setItem('userToken', token);
+                            localStorage.removeItem('isTrialUser'); // <-- Hapus flag trial jika jadi user berbayar
                         }
-                        // --- AKHIR MODIFIKASI ---
+                        
+                        // --- PERUBAHAN BARU: Logika Flag Trial ---
+                        if (token === "TRIAL_REQUEST") {
+                            if (data.remainingLogins > 0) {
+                                localStorage.setItem('isTrialUser', 'true'); // <-- CATAT user trial
+                            } else {
+                                localStorage.removeItem('isTrialUser'); // <-- HAPUS flag trial jika jatah habis
+                            }
+                        }
+                        // --- AKHIR PERUBAHAN ---
                         
                         // --- BARU: Simpan info token ke localStorage ---
                         if (data.expiryDate) {
@@ -2913,8 +2933,15 @@
                         // GAGAL
                         if (isSavedTokenCheck) {
                             localStorage.removeItem('userToken');
-                            localStorage.removeItem('tokenExpiry'); // Hapus juga expiry
+                            localStorage.removeItem('isTrialUser'); // <-- Hapus flag trial jika token tersimpan gagal
                         }
+                        
+                        // --- PERUBAHAN BARU: Hapus flag trial jika trial gagal ---
+                        if (token === "TRIAL_REQUEST") {
+                            localStorage.removeItem('isTrialUser'); // <-- Hapus flag trial
+                        }
+                        // --- AKHIR PERUBAHAN ---
+
                         // --- BARU: Hapus info token yang gagal ---
                         localStorage.removeItem('tokenExpiryDate');
                         localStorage.removeItem('tokenRemainingLogins');
@@ -2932,7 +2959,7 @@
                     console.error("Fetch Error:", err);
                     tokenLoader.style.display = 'none';
                     tokenButton.disabled = false;
-                    if (trialButton) trialButton.disabled = false; // <-- TAMBAHKAN INI
+                    if (trialButton) trialButton.disabled = false; 
                     tokenInput.disabled = false;
                     tokenError.textContent = "Error: Gagal terhubung ke server.";
                 });
@@ -3024,6 +3051,7 @@
                     localStorage.removeItem('tokenExpiryDate');
                     localStorage.removeItem('tokenRemainingLogins');
                     localStorage.removeItem('tokenExpiry'); // Hapus sisa-sisa
+                    localStorage.removeItem('isTrialUser'); // <-- PERUBAHAN DISINI
 
                     // 3. Sembunyikan semua overlay
                     setupOverlay.style.display = 'none';
