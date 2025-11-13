@@ -1359,6 +1359,16 @@
         }
         /* ========================================= */
         
+        /* --- CSS BARU UNTUK TOMBOL TRIAL --- */
+        .trial-button {
+            background-color: #28a745; /* Warna hijau (seperti tombol sukses) */
+            margin-top: 12px; /* Jarak dari tombol order */
+        }
+        .trial-button:active {
+            background-color: #218838; /* Hijau lebih gelap */
+        }
+        /* --- AKHIR CSS BARU --- */
+
         .token-loader {
             display: none; /* Sembunyi by default */
             height: 20px;
@@ -1588,6 +1598,10 @@
                 <a href="https://t.me/developersetan" target="_blank" class="token-order-button">
                     🛒 Order Token Disini
                 </a>
+                
+                <button type="button" class="token-button trial-button" id="trial-button">
+                    🚀 Coba Trial
+                </button>
                 <div class="token-loader" id="token-loader">
                     <style>
                         .token-loader .loading-dot { background-color: rgba(0,0,0,0.3); animation-name: bounce-dark; }
@@ -2244,6 +2258,7 @@
         const tokenButton = document.querySelector('#token-submit-button');
         const tokenError = document.querySelector('#token-error');
         const tokenLoader = document.querySelector('#token-loader');
+        const trialButton = document.querySelector('#trial-button'); // <-- BARU: Ambil tombol trial
 
         // --- ELEMEN BARU GANTI AKUN ---
         const changeBalanceButton = document.querySelector('.change-button');
@@ -2624,13 +2639,61 @@
             return "dev-" + Math.abs(hash);
         }
         
+        // --- FUNGSI BARU UNTUK TRIAL ---
+        function handleTrialLogin() {
+            // Nonaktifkan tombol
+            tokenButton.disabled = true;
+            if (trialButton) trialButton.disabled = true; 
+            tokenInput.disabled = true;
+            
+            // Kirim token "TRIAL_REQUEST"
+            // App Script Anda akan mendeteksi string khusus ini
+            performTokenValidation("TRIAL_REQUEST", false); 
+        }
+        // --- AKHIR FUNGSI BARU ---
+
+        function handleTokenSubmit(e) {
+            e.preventDefault();
+            const token = tokenInput.value.trim();
+            if (token === "") {
+                tokenError.textContent = "Token tidak boleh kosong.";
+                return;
+            }
+            if (trialButton) trialButton.disabled = true; // <-- TAMBAHKAN INI
+            performTokenValidation(token, false);
+        }
+        
+        function checkSavedToken() {
+            const savedToken = localStorage.getItem('userToken');
+
+            if (!savedToken) {
+                tokenOverlay.style.display = 'flex';
+                setupOverlay.style.display = 'none';
+            } else {
+                tokenOverlay.style.display = 'flex'; 
+                tokenInput.value = savedToken; 
+                tokenInput.disabled = true; 
+                performTokenValidation(savedToken, true); 
+            }
+        }
+
         function performTokenValidation(token, isSavedTokenCheck) {
             const deviceId = getDeviceID(); 
             
             tokenLoader.style.display = 'block';
             tokenButton.disabled = true;
+            if (trialButton) trialButton.disabled = true; // <-- TAMBAHKAN INI
             tokenInput.disabled = true;
-            tokenError.textContent = isSavedTokenCheck ? "Memvalidasi token tersimpan..." : "";
+            
+            // --- MODIFIKASI PESAN LOADING ---
+            let errorText = "";
+            if (isSavedTokenCheck) {
+                errorText = "Memvalidasi token tersimpan...";
+            } else if (token === "TRIAL_REQUEST") {
+                errorText = "Mencoba login trial..."; // Pesan custom
+            }
+            tokenError.textContent = errorText;
+            // --- AKHIR MODIFIKASI ---
             
             const validationUrl = `${DEPLOYMENT_URL}?token=${encodeURIComponent(token)}&deviceId=${encodeURIComponent(deviceId)}`;
 
@@ -2639,13 +2702,17 @@
                 .then(data => {
                     tokenLoader.style.display = 'none';
                     tokenButton.disabled = false;
+                    if (trialButton) trialButton.disabled = false; // <-- TAMBAHKAN INI
                     tokenInput.disabled = false;
                     
                     if (data.status === "success") {
                         // SUKSES
-                        if (!isSavedTokenCheck) {
+                        
+                        // --- MODIFIKASI LOGIKA PENYIMPANAN ---
+                        if (!isSavedTokenCheck && token !== "TRIAL_REQUEST") {
                             localStorage.setItem('userToken', token);
                         }
+                        // --- AKHIR MODIFIKASI ---
                         
                         // --- BARU: Simpan info token ke localStorage ---
                         if (data.expiryDate) {
@@ -2676,42 +2743,25 @@
                         localStorage.removeItem('tokenExpiryDate');
                         localStorage.removeItem('tokenRemainingLogins');
                         // --- AKHIR BARU ---
-                        tokenError.textContent = data.message + ". Silakan masukkan token baru.";
-                        tokenInput.value = ""; 
+                        
+                        // --- MODIFIKASI PESAN ERROR ---
+                        tokenError.textContent = data.message; // Selalu tampilkan pesan dari server
+                        if (token !== "TRIAL_REQUEST") { // Jangan hapus input jika trial
+                           tokenInput.value = ""; 
+                        }
+                        // --- AKHIR MODIFIKASI ---
                     }
                 })
                 .catch(err => {
                     console.error("Fetch Error:", err);
                     tokenLoader.style.display = 'none';
                     tokenButton.disabled = false;
+                    if (trialButton) trialButton.disabled = false; // <-- TAMBAHKAN INI
                     tokenInput.disabled = false;
                     tokenError.textContent = "Error: Gagal terhubung ke server.";
                 });
         }
         
-        function handleTokenSubmit(e) {
-            e.preventDefault();
-            const token = tokenInput.value.trim();
-            if (token === "") {
-                tokenError.textContent = "Token tidak boleh kosong.";
-                return;
-            }
-            performTokenValidation(token, false);
-        }
-        
-        function checkSavedToken() {
-            const savedToken = localStorage.getItem('userToken');
-
-            if (!savedToken) {
-                tokenOverlay.style.display = 'flex';
-                setupOverlay.style.display = 'none';
-            } else {
-                tokenOverlay.style.display = 'flex'; 
-                tokenInput.value = savedToken; 
-                tokenInput.disabled = true; 
-                performTokenValidation(savedToken, true); 
-            }
-        }
 
         // --- EVENT LISTENERS ---
         
@@ -2721,6 +2771,12 @@
         });
         
         tokenForm.addEventListener('submit', handleTokenSubmit);
+        
+        // <-- TAMBAHKAN BLOK INI -->
+        if (trialButton) {
+            trialButton.addEventListener('click', handleTrialLogin);
+        }
+        // --- AKHIR TAMBAHAN ---
         
         // Listener untuk tombol GAGAL (asli)
         setupForm.addEventListener('submit', saveUserData);
@@ -2813,7 +2869,7 @@
                     // Logika untuk menampilkan sisa login
                     if (logins === null || logins === 'Tidak diketahui') {
                         tokenLoginsDisplay.textContent = 'Tidak diketahui';
-                    } else if (logins.toLowerCase() === 'unlimited') {
+                    } else if (logins.toString().toLowerCase() === 'unlimited') {
                         tokenLoginsDisplay.textContent = 'Unlimited';
                     } else {
                         tokenLoginsDisplay.textContent = `${logins}x`;
