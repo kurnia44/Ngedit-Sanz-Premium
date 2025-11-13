@@ -1187,16 +1187,31 @@
         }
         /* --- AKHIR PERUBAHAN --- */
 
-        /* --- PERUBAHAN BARU: Info Data Token (REQ 2) --- */
+        /* --- PERUBAHAN BARU: Info Data Token (REQ 2 & 3) --- */
         .view-token-link {
             display: block;
             text-align: center;
             font-size: 14px;
-            color: #007AFF;
+            /* color: #007AFF; */ /* <-- DIHAPUS */
+            color: #000; /* <-- BARU: Sesuai permintaan (hitam) */
             text-decoration: none;
             margin-top: -16px; /* Tarik ke atas, lebih dekat ke judul */
             margin-bottom: 20px;
+            
+            /* --- TAMBAHAN GAYA TOMBOL (SESUAI PERMINTAAN) --- */
+            background-color: #007AFF; /* <-- BARU: Warna biru */
+            padding: 10px 14px; /* <-- BARU: Padding agar terlihat seperti tombol */
+            border-radius: 8px; /* <-- BARU: Sudut melengkung */
+            font-weight: 500; /* <-- BARU: Teks tebal */
+            /* --- AKHIR TAMBAHAN --- */
         }
+        
+        /* --- BARU: Efek aktif untuk tombol --- */
+        .view-token-link:active {
+            background-color: #0056b3; /* Biru lebih gelap */
+        }
+        /* --- AKHIR BARU --- */
+
         .token-data-info {
             display: none; /* Sembunyi by default */
             background-color: rgba(0, 0, 0, 0.05); /* Latar sedikit gelap */
