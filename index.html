@@ -1190,20 +1190,24 @@
         /* --- PERUBAHAN BARU: Info Data Token (REQ 2 & 3) --- */
         .view-token-link {
             display: block;
+            width: 100%; /* <-- PENTING: Menjaga agar tombol tetap full-width */
             text-align: center;
             font-size: 14px;
-            /* color: #007AFF; */ /* <-- DIHAPUS */
-            color: #000; /* <-- BARU: Sesuai permintaan (hitam) */
+            color: #FFF; /* <-- PERUBAHAN 1: Diubah ke putih */
             text-decoration: none;
-            margin-top: -16px; /* Tarik ke atas, lebih dekat ke judul */
+            margin-top: -16px; 
             margin-bottom: 20px;
             
-            /* --- TAMBAHAN GAYA TOMBOL (SESUAI PERMINTAAN) --- */
-            background-color: #007AFF; /* <-- BARU: Warna biru */
-            padding: 10px 14px; /* <-- BARU: Padding agar terlihat seperti tombol */
-            border-radius: 8px; /* <-- BARU: Sudut melengkung */
-            font-weight: 500; /* <-- BARU: Teks tebal */
-            /* --- AKHIR TAMBAHAN --- */
+            background-color: #007AFF; 
+            padding: 10px 14px; 
+            border-radius: 8px; 
+            font-weight: 500; 
+            
+            /* --- PERBAIKAN BUG 2 --- */
+            border: none; /* Menghilangkan border default button */
+            font-family: inherit; /* Menyamakan font */
+            cursor: pointer; /* Menambahkan kursor pointer */
+            /* --- AKHIR PERBAIKAN --- */
         }
         
         /* --- BARU: Efek aktif untuk tombol --- */
@@ -1617,7 +1621,7 @@
             <form id="setup-form">
                 <h2>Pengaturan Penerima</h2>
                 
-                <a href="#" id="view-token-data-link" class="view-token-link">Lihat data token</a>
+                <button type="button" id="view-token-data-link" class="view-token-link">Lihat data token</button>
                 <div id="token-data-panel" class="token-data-info">
                     <strong>Kadaluarsa:</strong> <span id="token-expiry-display">...</span><br>
                     <strong>Sisa Login:</strong> <span id="token-logins-display">...</span>
