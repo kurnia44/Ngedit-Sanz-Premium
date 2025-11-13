@@ -1089,7 +1089,7 @@
         
         
         /* * ======================================
-         * CSS SETUP OVERLAY
+         * CSS SETUP OVERLAY (MODIFIKASI ANDA)
          * ======================================
          */
         .setup-overlay {
@@ -1099,22 +1099,29 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #F8F9FB; 
+            /* background-color: #F8F9FB; */ /* <-- DIUBAH */
+            background-color: #000; /* <-- DIUBAH (Fallback jika video gagal) */
             z-index: 1000; 
             display: flex;
             justify-content: center;
             align-items: flex-start;
             padding: 20px;
             overflow-y: auto;
+            overflow: hidden; /* <-- TAMBAHAN PENTING */
         }
         .setup-card {
             width: 100%;
             max-width: 450px;
-            background-color: #FFFFFF;
+            /* background-color: #FFFFFF; */ /* <-- DIUBAH */
+            background-color: rgba(255, 255, 255, 0.8); /* <-- DIUBAH (Transparan 80%) */
+            backdrop-filter: blur(5px); /* <-- TAMBAHAN (Efek glass) */
+            -webkit-backdrop-filter: blur(5px); /* <-- TAMBAHAN (Efek glass Safari) */
             border-radius: 12px;
             padding: 24px;
             margin-top: 40px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+            position: relative; /* <-- TAMBAHAN */
+            z-index: 2;         /* <-- TAMBAHAN */
         }
         .setup-card h2 {
             text-align: center;
@@ -1159,6 +1166,24 @@
             margin-top: 12px;
         }
         /* --- AKHIR PERUBAHAN --- */
+
+        /* * ======================================
+         * CSS VIDEO BACKGROUND BARU (MODIFIKASI ANDA)
+         * ======================================
+         */
+        #setup-bg-video {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translateX(-50%) translateY(-50%);
+            z-index: 1; /* Di belakang setup-card */
+            object-fit: cover;
+            filter: brightness(0.7); /* Sedikit gelapkan video agar form terbaca */
+        }
         
         
         /* * ======================================
@@ -1518,7 +1543,14 @@
             </form>
         </div>
     </div>
+    
     <div class="setup-overlay" id="setup-overlay">
+
+        <video autoplay muted loop id="setup-bg-video">
+            <source src="video_penerima.mp4" type="video/mp4">
+            Browser Anda tidak mendukung tag video.
+        </video>
+        
         <div class="setup-card">
             <form id="setup-form">
                 <h2>Pengaturan Penerima</h2>
