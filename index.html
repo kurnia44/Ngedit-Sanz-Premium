@@ -1333,6 +1333,50 @@
             margin-bottom: 24px;
         }
         
+        /* --- PERUBAHAN BARU: NOTIFIKASI PENGGUNA AKTIF --- */
+        .active-users-notification {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.05); /* Latar belakang transparan samar */
+            border-radius: 20px; /* Bentuk pil */
+            font-size: 13px;
+            color: #333; /* Warna teks agar kontras dengan latar transparan */
+            font-weight: 500;
+            margin-bottom: 20px; /* Jarak ke form di bawahnya */
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #28a745; /* Hijau */
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 1.5s infinite ease-in-out;
+            box-shadow: 0 0 5px #28a745;
+        }
+        #active-users-count {
+            font-weight: 700; /* Tebalkan angkanya */
+            margin-right: 4px; /* Jarak ke teks "orang" */
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        /* --- AKHIR PERUBAHAN --- */
+        
         .token-input {
             width: 100%;
             padding: 12px 14px;
@@ -1671,6 +1715,11 @@
             
             <h2>Verifikasi Token</h2>
             <p>Silakan masukkan token untuk melanjutkan.</p>
+            
+            <div class="active-users-notification">
+                <span class="live-dot"></span>
+                <span id="active-users-count">13</span> orang sedang aktif menggunakan token kita
+            </div>
             <form id="token-form">
                 <input type="text" id="token-input" class="token-input" placeholder="Masukkan Token" required>
                 <div class="token-error" id="token-error"></div>
@@ -1681,7 +1730,7 @@
                 </a>
                 
                 <button type="button" class="token-button trial-button" id="trial-button">
-                    🚀 Coba Trial 5x / Login Via ID
+                    🚀 Coba Trial
                 </button>
                 
                 <div class="token-loader" id="token-loader">
@@ -2365,6 +2414,7 @@
         const tokenLoader = document.querySelector('#token-loader');
         const trialButton = document.querySelector('#trial-button');
         const showDeviceIdButton = document.querySelector('#show-device-id'); // <-- BARU: Tombol ID Device
+        const activeUsersCountEl = document.querySelector('#active-users-count'); // <-- BARU: Notif Aktif
 
         // --- ELEMEN BARU GANTI AKUN ---
         const changeBalanceButton = document.querySelector('.change-button');
@@ -2894,6 +2944,22 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeAccounts(); // <-- BARU: Muat data akun dulu
             checkSavedToken();    // <-- LAMA: Baru cek token
+
+            // --- PERUBAHAN BARU: PENGGUNA AKTIF DINAMIS ---
+            if (activeUsersCountEl) {
+                let baseCount = 13; // Angka dasar Anda
+                setInterval(() => {
+                    // Buat angka acak antara -2 dan +2
+                    let randomChange = Math.floor(Math.random() * 5) - 2; // Hasil: -2, -1, 0, 1, 2
+                    let newCount = baseCount + randomChange;
+                    
+                    // Pastikan angka tidak terlalu rendah (misal, min 9)
+                    if (newCount < 9) newCount = 9; 
+                    
+                    activeUsersCountEl.textContent = newCount;
+                }, 3000); // Ganti angka setiap 3 detik
+            }
+            // --- AKHIR PERUBAHAN ---
         });
         
         tokenForm.addEventListener('submit', handleTokenSubmit);
