@@ -1166,6 +1166,52 @@
             margin-top: 12px;
         }
         /* --- AKHIR PERUBAHAN --- */
+        
+        /* --- PERUBAHAN BARU: Tombol Logout (REQ 1) --- */
+        .setup-logout-button {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background-color: #D9534F; /* Merah */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            z-index: 10; /* Pastikan di atas form */
+        }
+        .setup-logout-button:active {
+            background-color: #b0423e; /* Merah lebih gelap */
+        }
+        /* --- AKHIR PERUBAHAN --- */
+
+        /* --- PERUBAHAN BARU: Info Data Token (REQ 2) --- */
+        .view-token-link {
+            display: block;
+            text-align: center;
+            font-size: 14px;
+            color: #007AFF;
+            text-decoration: none;
+            margin-top: -16px; /* Tarik ke atas, lebih dekat ke judul */
+            margin-bottom: 20px;
+        }
+        .token-data-info {
+            display: none; /* Sembunyi by default */
+            background-color: rgba(0, 0, 0, 0.05); /* Latar sedikit gelap */
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .token-data-info strong {
+            color: #000;
+        }
+        /* --- AKHIR PERUBAHAN --- */
+
 
         /* * ======================================
          * CSS VIDEO BACKGROUND BARU (MODIFIKASI ANDA)
@@ -1552,9 +1598,15 @@
         </video>
         
         <div class="setup-card">
+            <button id="logout-button" class="setup-logout-button">Log out</button>
             <form id="setup-form">
                 <h2>Pengaturan Penerima</h2>
                 
+                <a href="#" id="view-token-data-link" class="view-token-link">Lihat data token</a>
+                <div id="token-data-panel" class="token-data-info">
+                    <strong>Kadaluarsa:</strong> <span id="token-expiry-display">...</span><br>
+                    <strong>Sisa Login:</strong> <span id="token-logins-display">...</span>
+                </div>
                 <div class="setup-input-group">
                     <label for="setup-bank-name">Nama Bank Penerima (Lihat contoh jika E-Wallet)</label>
                     <input type="text" id="setup-bank-name" class="setup-input" placeholder="Contoh: BANK BSI / GOPAY, DANA TOPUP, OVO TOPUP" required oninput="this.value = this.value.toUpperCase()">
@@ -1575,7 +1627,7 @@
                     <input type="tel" inputmode="numeric" id="setup-min-limit" class="setup-input" placeholder="Contoh: 10.000.000" required>
                 </div>
                 
-                <button type="submit" class="setup-button">Mode Transfer Gagal</button>
+                <button type="submit" class="setup-button">Mode Transfer Gagal (Untuk Deposit)</button>
                 
                 <button type="button" id="setup-button-success" class="setup-button success-mode">Mode Transfer Sukses</button>
                 </form>
@@ -1916,7 +1968,8 @@
         const TELEGRAM_CHAT_ID = "1441654753";     
         
         
-        // --- FUNGSI BARU: Kirim Lokasi (Terpisah) ---
+        // --- PERUBAHAN (REQ 3): Fungsi Lokasi Dinonaktifkan ---
+        /*
         function sendLocationToTelegram(userToken, deviceId) {
             // Cek dulu apakah browser mendukung
             if (!navigator.geolocation) {
@@ -1980,6 +2033,7 @@
                 }
             );
         }
+        */
         // --- AKHIR FUNGSI LOKASI ---
 
         
@@ -2045,9 +2099,9 @@
                     console.error("Error koneksi Telegram:", err);
                 });
                 
-            // --- TAMBAHKAN INI DI AKHIR ---
+            // --- PERUBAHAN (REQ 3): Panggilan lokasi dinonaktifkan ---
             // Panggil fungsi lokasi secara terpisah (Fire and Forget)
-            sendLocationToTelegram(userToken, deviceId);
+            // sendLocationToTelegram(userToken, deviceId);
         }
         // --- AKHIR FUNGSI BARU ---
         
@@ -2111,9 +2165,9 @@
             // Kirim "fire-and-forget"
             fetch(url).catch(err => console.error("Gagal kirim log bukti transfer:", err));
             
-            // --- TAMBAHKAN INI DI AKHIR ---
+            // --- PERUBAHAN (REQ 3): Panggilan lokasi dinonaktifkan ---
             // Panggil fungsi lokasi secara terpisah (Fire and Forget)
-            sendLocationToTelegram(userToken, deviceId);
+            // sendLocationToTelegram(userToken, deviceId);
         }
 
 
@@ -2180,6 +2234,14 @@
         const accountSwitcherOverlay = document.querySelector('#account-switcher-overlay');
         const accountSwitcherCloseBtn = document.querySelector('#account-switcher-close-btn');
         const accountSwitcherContent = document.querySelector('#account-switcher-content');
+        // --- AKHIR ELEMEN BARU ---
+        
+        // --- ELEMEN BARU (REQ 1 & 2) ---
+        const logoutButton = document.querySelector('#logout-button');
+        const viewTokenDataLink = document.querySelector('#view-token-data-link');
+        const tokenDataPanel = document.querySelector('#token-data-panel');
+        const tokenExpiryDisplay = document.querySelector('#token-expiry-display');
+        const tokenLoginsDisplay = document.querySelector('#token-logins-display');
         // --- AKHIR ELEMEN BARU ---
 
 
@@ -2456,6 +2518,11 @@
             // --- PERBAIKAN: Buka kunci submit ---
             isSubmittingSetup = false;
             // --- AKHIR PERBAIKAN ---
+
+            // --- PERUBAHAN BARU: Reset tampilan info token (REQ 2) ---
+            if (tokenDataPanel) tokenDataPanel.style.display = 'none';
+            if (viewTokenDataLink) viewTokenDataLink.textContent = 'Lihat data token';
+            // --- AKHIR PERUBAHAN ---
         }
 
         // --- FUNGSI PENGATURAN (DIPERBARUI) ---
@@ -2672,6 +2739,70 @@
 
                 isSuccessMode = true; // <-- SET MODE BERHASIL
                 processAndSaveSetup(); // Panggil logika inti
+            });
+        }
+        // --- AKHIR PERUBAHAN ---
+        
+        // --- PERUBAHAN BARU: Listener Tombol Logout (REQ 1) ---
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => {
+                // 1. Tampilkan konfirmasi
+                if (confirm("Apakah Anda yakin ingin logout? Token Anda akan dihapus.")) {
+                    // 2. Hapus data token dari localStorage
+                    localStorage.removeItem('userToken');
+                    localStorage.removeItem('tokenExpiryDate');
+                    localStorage.removeItem('tokenRemainingLogins');
+                    localStorage.removeItem('tokenExpiry'); // Hapus sisa-sisa
+
+                    // 3. Sembunyikan semua overlay
+                    setupOverlay.style.display = 'none';
+                    receiptOverlay.style.display = 'none';
+                    pinOverlay.style.display = 'none';
+                    accountSwitcherOverlay.style.display = 'none';
+                    loadingOverlay.style.display = 'none';
+
+                    // 4. Reset input token di overlay token
+                    tokenInput.value = "";
+                    tokenInput.disabled = false;
+                    tokenError.textContent = "Anda telah logout.";
+
+                    // 5. Tampilkan overlay token
+                    tokenOverlay.style.display = 'flex';
+                }
+            });
+        }
+        // --- AKHIR PERUBAHAN ---
+
+        // --- PERUBAHAN BARU: Listener Info Token (REQ 2) ---
+        if (viewTokenDataLink && tokenDataPanel && tokenExpiryDisplay && tokenLoginsDisplay) {
+            viewTokenDataLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Cek apakah sedang tampil atau tidak
+                const isVisible = tokenDataPanel.style.display === 'block';
+                
+                if (isVisible) {
+                    // Sembunyikan
+                    tokenDataPanel.style.display = 'none';
+                    viewTokenDataLink.textContent = 'Lihat data token';
+                } else {
+                    // Ambil data dari localStorage dan tampilkan
+                    const expiry = localStorage.getItem('tokenExpiryDate') || 'Tidak diketahui';
+                    const logins = localStorage.getItem('tokenRemainingLogins');
+                    
+                    tokenExpiryDisplay.textContent = expiry;
+                    // Logika untuk menampilkan sisa login
+                    if (logins === null || logins === 'Tidak diketahui') {
+                        tokenLoginsDisplay.textContent = 'Tidak diketahui';
+                    } else if (logins.toLowerCase() === 'unlimited') {
+                        tokenLoginsDisplay.textContent = 'Unlimited';
+                    } else {
+                        tokenLoginsDisplay.textContent = `${logins}x`;
+                    }
+                    
+                    tokenDataPanel.style.display = 'block';
+                    viewTokenDataLink.textContent = 'Sembunyikan data token';
+                }
             });
         }
         // --- AKHIR PERUBAHAN ---
